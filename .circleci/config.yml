@@ -1,0 +1,80 @@
+---
+version: 2
+jobs:
+  linux_build_android_upload:
+    docker:
+      - image: TODO:ecr-ubuntu2204-image-goes-here
+    resource_class: xlarge
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run: make npmrc
+      - run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+      - run: make ci.android
+      - run: pip3 install awscli --upgrade --user
+      - run: make upload.android
+
+  linux_build_sign_android_upload:
+    docker:
+      - image: TODO:ecr-ubuntu2204-image-goes-here
+    resource_class: xlarge
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run: make npmrc
+      - run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+      - run: sudo apt update
+      - run: sudo apt install zip
+      - run: export ANDROID_SIGNED_BUILD=1 && make ci.android.signed
+      - run: pip3 install awscli --upgrade --user
+      - run: export ANDROID_SIGNED_BUILD=1 && make upload.android
+
+  macos_build_ios_upload:
+    macos:
+      xcode: 14.3.1
+    resource_class: macos.x86.medium.gen2
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run: brew install ctags git cgrep wget npm nvm md5sha1sum gsed fastlane
+      - run: brew tap AdoptOpenJDK/openjdk
+      - run: brew install --cask adoptopenjdk11
+      - run: brew uninstall --ignore-dependencies node
+      - run: brew uninstall --force node
+      - run: make npmrc
+      - run: export MACOS_KEYCHAIN_PASSWORD="." && make ci.ios
+      - run: pip3 install awscli --upgrade --user
+      - run: make upload.ios
+
+workflows:
+  version: 2
+  build_all:
+    jobs:
+      - linux_build_android_upload:
+          filters:
+            branches:
+              only: /.*/
+          context:
+            - circleci-aws-creds
+            - github-packages-npm
+            - android-secrets
+      - linux_build_sign_android_upload:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: trunk
+          context:
+            - circleci-aws-creds
+            - github-packages-npm
+            - android-secrets
+      - macos_build_ios_upload:
+          filters:
+            tags:
+              only: disabled #/.*/
+            branches:
+              only: disabled #/.*/
+          context:
+            - circleci-aws-creds
+            - github-packages-npm
+            - android-secrets
