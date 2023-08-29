@@ -1,4 +1,4 @@
-# Unit Setup Mobile App
+# Desolation - A React Native Example Application for IOS & Android
 Mobile app for setting up, configuring, and testing the sensors
 
 ## Ubuntu 22.04 Environment Setup
