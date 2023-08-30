@@ -1,6 +1,10 @@
-ORG.NAME=acme
+ifndef $(ORG.NAME)
+	$(error ORG.NAME must be defined.)
+endif
+ifndef $(APP.NAME)
+	$(error APP.NAME must be defined.)
+endif
 CONTACT.EMAIL=yourname@$(ORG.NAME).com
-APP.NAME=teakerne
 APP.ID=com.$(ORG.NAME).$(APP.NAME)
 PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
 GIT.ORG=caseykelso
