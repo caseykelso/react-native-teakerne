@@ -183,9 +183,9 @@ endif
 
 install.node: .FORCE
 	$(info $(ENV.VARS))
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install react-native-cli npm install
+	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install react-native-cli npm install
 ifeq ($(OS), Darwin)
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install ios-deploy
+	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install ios-deploy
 #	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
 endif
 
