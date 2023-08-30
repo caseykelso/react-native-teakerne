@@ -578,6 +578,7 @@ clean: clean.node.modules clean.ios
 	rm -rf $(IOS.OUTPUT)
 	rm -rf $(PROJECT.DIR)
 	rm -f $(BASE.DIR)/package.json
+	rm -f $(BASE.DIR)/yarn-error.log
 
 .FORCE:
 
