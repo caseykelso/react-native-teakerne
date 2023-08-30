@@ -1,6 +1,7 @@
-CONTACT.EMAIL=yourname@acme.com
-APP.ID=com.acme.desolation
+ORG.NAME=acme
+CONTACT.EMAIL=yourname@$(ORG.NAME).com
 APP.NAME=desolation
+APP.ID=com.$(ORG.NAME).$(APP.NAME)
 GIT.ORG=caseykelso
 GIT.REPO=react-native-template
 1PASSWORD.SECRETS.URL="https://1password.com/secretslinkfordecrypt"
@@ -40,7 +41,8 @@ EMULATOR.BIN=$(ANDROID.SDK.DIR)/platforms/tools/emulator
 LOCAL.PROPERTIES=$(ANDROID.DIR)/local.properties
 AVD.DIR=$(DOWNLOADS.DIR)/avds
 BREW.PREFIX=/usr/local/opt/nvm
-IOS.DIR=$(BASE.DIR)/ios
+PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
+IOS.DIR=$(PROJECT.DIR)/ios
 IOS.WORKSPACE=$(IOS.DIR)/$(APP.NAME).xcworkspace
 IOS.PROJECT=$(IOS.DIR)/$(APP.NAME).xcodeproj
 IOS.OUTPUT=$(IOS.DIR)/output
@@ -79,7 +81,7 @@ ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.s
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
 ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
-PACKAGE.NAME=com.desolation
+PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(BASE.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
 ANDROID.BUNDLE.DEBUG.ORIG=$(BASE.DIR)/android/app/build/outputs/bundle/debug/app-debug.aab
@@ -111,6 +113,10 @@ SCREENSHOTS.DIR=$(BASE.DIR)/screenshots
 DATETIME:=$(shell date +%Y%m%d%H%M%S)
 NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
+REACT.NATIVE.INSTALL.VERSION=0.68.7
+
+create.project: .FORCE
+	npx react-native@0.68.7 init $(APP.NAME)
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android

@@ -47,6 +47,11 @@ autoload -U compinit && compinit
 ```
 * restart your terminal
 
+## How To Generate Helloworld Project
+```bash
+make create.project
+```
+
 ## How-to Build Android Initially
 ```bash
 git clone git@github.com:caseykelso/react-native-template.git
