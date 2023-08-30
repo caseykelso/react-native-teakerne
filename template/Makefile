@@ -62,10 +62,10 @@ endif
 ifeq ($(OS),Linux)
 JAVA.HOME=/usr/lib/jvm/java-11-openjdk-amd64/
 endif
-ENV.VARS.ROOT=export JAVA_HOME=$(JAVA.HOME) && export ANDROID_HOME=$(ANDROID.SDK.DIR)/platforms && export PATH=$(ANDROID.HOME)/tools:$(ANDROID.HOME)/platform-tools:$(ANDROID.SDK.DIR)/bin:$(PWD)/node_modules/.bin:$(PATH)  && export ANDROID_SDK_ROOT=$(ANDROID.SDK.DIR)/platforms
+ENV.VARS.ROOT=export JAVA_HOME=$(JAVA.HOME) && export ANDROID_HOME=$(ANDROID.SDK.DIR)/platforms && export PATH=$(ANDROID.HOME)/tools:$(ANDROID.HOME)/platform-tools:$(ANDROID.SDK.DIR)/bin:$(PROJECT.DIR)/node_modules/.bin:$(PATH)  && export ANDROID_SDK_ROOT=$(ANDROID.SDK.DIR)/platforms
 NPM.GLOBAL.PATH=$(npm config get prefix)
 ifeq ($(OS), Darwin)
-ENV.VARS=$(ENV.VARS.ROOT) && export NVM_DIR=~/.nvm && source $(BREW.PREFIX)/nvm.sh && export NODE_BINARY=$(NODE.BINARY.MACOS) && $(info $(ENV.VARS))
+ENV.VARS=$(ENV.VARS.ROOT) && export NVM_DIR=~/.nvm && source $(BREW.PREFIX)/nvm.sh && export NODE_BINARY=$(NODE.BINARY.MACOS) #&& $(info $(ENV.VARS))
 endif
 ifeq ($(OS), Linux)
 ENV.VARS=$(ENV.VARS.ROOT)
@@ -79,7 +79,7 @@ ci: ci.android
 ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: ios.get.certificates.development ios.automatic.code.signing.disable nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
@@ -164,11 +164,11 @@ endif
 
 
 install.node: .FORCE
-#	$(info $(ENV.VARS))
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install react-native-cli && npm install
+	$(info $(ENV.VARS))
+	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install react-native-cli npm install
 ifeq ($(OS), Darwin)
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT>DIR) && npm install ios-deploy
-	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
+	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install ios-deploy
+#	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
 endif
 
 env: .FORCE
@@ -422,12 +422,11 @@ build.android.release.and.run: build.android.react.bundle # build and run using 
 	$(MAKE) deploy.apk.release # update the dist directory for house keeping purposes
 	$(MAKE) adb.kill.app adb.run
 
-
 build.ios.react.bundle: install.node
-	$(ENV.VARS) && $(MAKE) nvm.use && react-native bundle --verbose --platform ios --dev false --entry-file index.js --bundle-output $(IOS.DIR)/main.jsbundle --assets-dest $(IOS.DIR)
+	$(ENV.VARS) &&  $(NVM.VARS) && cd $(PROJECT.DIR) && react-native --help #bundle --verbose --platform ios --dev false --entry-file index.js --bundle-output $(IOS.DIR)/main.jsbundle --assets-dest $(IOS.DIR)
 
 install.pods: .FORCE
-	$(ENV.VARS) && cd $(IOS.DIR) && pod repo update && pod update && pod install --verbose --repo-update
+	$(ENV.VARS) && $(NVM.VARS) && cd $(IOS.DIR) && pod repo update && pod update && pod install --verbose --repo-update
 
 ios.show.build.targets: .FORCE
 	cd $(IOS.DIR) && $(XCODEBUILD.BIN) -list -workspace $(IOS.WORKSPACE)
@@ -447,12 +446,12 @@ build.ios.debug: build.ios.react.bundle
 	$(info $(NODE.PREFIX))
 	$(info $(NODE.BINARY.MACOS) )
 ifdef MACOS_KEYCHAIN_PASSWORD
-	security unlock-keychain -p $(MACOS_KEYCHAIN_PASSWORD)
+#	security unlock-keychain -p $(MACOS_KEYCHAIN_PASSWORD)
 else
 	@echo "************note that this prompt can be avoided by exporting MACOS_KEYCHAIN_PASSWORD environment variable in your ~/.zshrc"
-	security unlock-keychain
+#	security unlock-keychain
 endif
-	$(ENV.VARS) && fastlane run setup_circle_ci && cd $(IOS.DIR) && $(XCODEBUILD.BIN)  -workspace $(IOS.WORKSPACE) -configuration Debug archive -sdk iphoneos -scheme $(APP.NAME) -archivePath $(IOS.XCARCHIVE)
+	$(ENV.VARS) && $(NVM.VARS) && fastlane run setup_circle_ci && cd $(IOS.DIR) && $(XCODEBUILD.BIN)  -workspace $(IOS.WORKSPACE) -configuration Debug archive -sdk iphoneos -scheme $(APP.NAME) -archivePath $(IOS.XCARCHIVE)
 
 build.ios.release: build.ios.react.bundle
 	$(info $(NODE.PREFIX))
@@ -463,7 +462,7 @@ else
 	@echo "************note that this prompt can be avoided by exporting MACOS_KEYCHAIN_PASSWORD environment variable in your ~/.zshrc"
 	security unlock-keychain
 endif
-	$(ENV.VARS) && fastlane run setup_circle_ci && cd $(IOS.DIR) && $(XCODEBUILD.BIN)  -workspace $(IOS.WORKSPACE) -configuration Release archive -sdk iphoneos -scheme $(APP.NAME) -archivePath $(IOS.XCARCHIVE)
+	$(ENV.VARS) && $(NVM.VARS) && fastlane run setup_circle_ci && cd $(IOS.DIR) && $(XCODEBUILD.BIN)  -workspace $(IOS.WORKSPACE) -configuration Release archive -sdk iphoneos -scheme $(APP.NAME) -archivePath $(IOS.XCARCHIVE)
 
 
 xcode.install.simulator: .FORCE
@@ -544,7 +543,7 @@ ios.create.appstore.provisioning.profile.generate.certificates: .FORCE # note th
 
 ios.get.certificates.development: .FORCE
 	@echo "decrypting ios secrets, enter password found here: $(1PASSWORD.SECRETS.URL)"
-	cd $(IOS.DIR) && fastlane run setup_circle_ci && export FASTLANE_USER="$(CONTACT.EMAIL)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match development --readonly --app_identifier "$(APP.ID)" --username "$(CONTACT.EMAIL)"
+#	cd $(IOS.DIR) && fastlane run setup_circle_ci && export FASTLANE_USER="$(CONTACT.EMAIL)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match development --readonly --app_identifier "$(APP.ID)" --username "$(CONTACT.EMAIL)"
 
 ios.get.certificates.appstore: .FORCE
 	@echo "decrypting ios secrets, enter password found here: $(1PASSWORD.SECRETS.URL)"
