@@ -76,18 +76,18 @@ ENCRYPT.SCRIPT=$(SCRIPTS.DIR)/encrypt.sh
 DECRYPT.SIGNING.SCRIPT=$(SCRIPTS.DIR)/decrypt_signing_key.sh
 ENCRYPT.SIGNING.SCRIPT=$(SCRIPTS.DIR)/encrypt_signing_key.sh
 ci: ci.android
-ci.android.common: package.json nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
+ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: package.json ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
-APK.DEBUG.ORIG=$(BASE.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
-ANDROID.BUNDLE.DEBUG.ORIG=$(BASE.DIR)/android/app/build/outputs/bundle/debug/app-debug.aab
-ANDROID.BUNDLE.RELEASE.ORIG=$(BASE.DIR)/android/app/build/outputs/bundle/release/app-release.aab
+APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
+ANDROID.BUNDLE.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/bundle/debug/app-debug.aab
+ANDROID.BUNDLE.RELEASE.ORIG=$(PROJECT.DIR)/android/app/build/outputs/bundle/release/app-release.aab
 ANDROID.BUNDLE.DEBUG=$(APP.NAME)-debug-$(VERSION).aab
 
-ifndef ANDROID_SIGNED_BUILD18.17.1
+ifndef ANDROID_SIGNED_BUILD
 ANDROID.BUNDLE.RELEASE=$(APP.NAME)-release-unsigned-$(VERSION).aab
 else
 ANDROID.BUNDLE.RELEASE=$(APP.NAME)-release-signed-$(VERSION).aab
@@ -96,7 +96,7 @@ endif
 ANDROID.UPLOAD.KEY.ALIAS=key0
 ANDROID.UPLOAD.KEY.KEYSTORE=$(BASE.DIR)/keystore.jks
 APK.DEBUG=$(APP.NAME)-debug-$(VERSION).apk
-APK.RELEASE.ORIG=$(BASE.DIR)/android/app/build/outputs/apk/release/app-release.apk
+APK.RELEASE.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/release/app-release.apk
 APK.RELEASE=$(APP.NAME)-release-$(VERSION).apk
 
 ifndef ANDROID_SIGNED_BUILD
@@ -111,15 +111,15 @@ BUILD.NUMBER.MAGIC.NUMBER=0000001
 SCREENSHOTS.DIR=$(BASE.DIR)/screenshots
 DATETIME:=$(shell date +%Y%m%d%H%M%S)
 #ifneq (,$(wildcard $(BASE.DIR)/package.json))
-NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
+#NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
 #else
-#NODE.VERSION=18.17.1
+NODE.VERSION=18.17.1
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
 REACT.NATIVE.INSTALL.VERSION=0.68.7
 
 create.project: nvmrc
-	$(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.68.7 init $(APP.NAME)
+	$(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.68.7 init $(APP.NAME) && cd $(PROJECT.DIR) && npm install react-native-cli
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
@@ -137,9 +137,6 @@ detox.build.release.android: .FORCE
 detox.run.release.android: .FORCE #log levels info, verbose, trace
 	$(ENV.VARS) && $(NVM.VARS) && detox test --loglevel verbose --configuration android.release
 
-package.json: .FORCE
-	cp -f $(TEMPLATE.DIR)/package.json.template $(BASE.DIR)/package.json
-
 nvm.install: nvmrc
 	. ${HOME}/.nvm/nvm.sh --no-use && nvm install $(NODE.VERSION)
 	$(NVM.VARS) && nvm use --delete-prefix $(NODE.VERSION) --silent
@@ -153,7 +150,7 @@ nvm.use: .FORCE
 
 nvm: nvm.install nvm.use
 
-nvmrc: .FORCE
+nvmrc: .FORCE 
 	$(info $(NODE.VERSION))
 	echo $(NODE.VERSION) > $(BASE.DIR)/.nvmrc
 
@@ -371,17 +368,18 @@ android.sdk.platform: .FORCE
 	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --install "platform-tools" "platforms;android-30" --sdk_root=$(ANDROID.SDK.DIR)/platforms
 
 build.android.react.bundle: install.node
-	$(ENV.VARS) && $(MAKE) nvm.use && react-native bundle --verbose --platform android --dev false --entry-file $(PROJECT.DIR)/index.js --bundle-output $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle --assets-dest $(PROJECT.DIR)/android/app/src/main/res
+	mkdir -p $(PROJECT.DIR)/android/app/src/main/assets
+	$(ENV.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && react-native bundle --verbose --platform android --dev false --entry-file $(PROJECT.DIR)/index.js --bundle-output $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle --assets-dest $(PROJECT.DIR)/android/app/src/main/res
 
 dist.directory: .FORCE
 	mkdir -p $(DIST.DIR)
 
 build.android.bundle.debug: dist.directory build.android.react.bundle
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleDebug
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleDebug
 	$(MAKE) deploy.android.bundle.debug
 
 build.android.bundle.release: dist.directory build.android.react.bundle
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleRelease
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleRelease
 	$(MAKE) deploy.android.bundle.release
 
 deploy.android.bundle.debug: dist.directory
@@ -396,14 +394,16 @@ deploy.apk.release: dist.directory
 deploy.apk.debug: dist.directory
 	cd $(DIST.DIR) && cp $(APK.DEBUG.ORIG) $(DIST.DIR)/$(APK.DEBUG)
 
-build.apk.release: build.android.react.bundle
-	grep -R '__DEV__=true' $(BASE.DIR)/src
-	@echo $? #TODO: add check here to make sure we don't ship code with __DEV__=true
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease
+android.remove.duplicate.assets: .FORCE
+	rm -f $(ANDROID.DIR)/app/build/generated/res/createBundleReleaseJsAndAssets/drawable-mdpi/node_modules_reactnative_libraries_newappscreen_components_logo.png
+	rm -f $(ANDROID.DIR)/app/src/main/res/drawable-mdpi/node_modules_reactnative_libraries_newappscreen_components_logo.png
+
+build.apk.release:  build.android.react.bundle android.remove.duplicate.assets
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease
 	$(MAKE) deploy.apk.release
 
 build.apk.debug: build.android.react.bundle
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug
 	$(MAKE) deploy.apk.debug
 
 build.apk.test.debug: build.android.react.bundle
@@ -577,7 +577,6 @@ clean: clean.node.modules clean.ios
 	rm -f $(BASE.DIR)/android/app/src/main/assets/index.android.bundle
 	rm -rf $(IOS.OUTPUT)
 	rm -rf $(PROJECT.DIR)
-	rm -f $(BASE.DIR)/package.json
 	rm -f $(BASE.DIR)/yarn-error.log
 
 .FORCE:
