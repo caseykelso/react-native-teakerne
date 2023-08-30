@@ -62,7 +62,7 @@ endif
 ifeq ($(OS),Linux)
 JAVA.HOME=/usr/lib/jvm/java-11-openjdk-amd64/
 endif
-ENV.VARS.ROOT=export JAVA_HOME=$(JAVA.HOME) && export ANDROID_HOME=$(ANDROID.SDK.DIR)/platforms && export PATH=$(ANDROID.HOME)/tools:$(ANDROID.HOME)/platform-tools:$(ANDROID.SDK.DIR)/bin:$(PWD)/node_modules/.bin:$(PATH)  && export ANDROID_SDK_ROOT=$(ANDROID.SDK.DIR)/platforms
+ENV.VARS.ROOT=export JAVA_HOME=$(JAVA.HOME) && export ANDROID_HOME=$(ANDROID.SDK.DIR)/platforms && export PATH=$(ANDROID.HOME)/tools:$(ANDROID.HOME)/platform-tools:$(ANDROID.SDK.DIR)/bin:$(PROJECT.DIR)/node_modules/.bin:$(PATH)  && export ANDROID_SDK_ROOT=$(ANDROID.SDK.DIR)/platforms
 NPM.GLOBAL.PATH=$(npm config get prefix)
 ifeq ($(OS), Darwin)
 ENV.VARS=$(ENV.VARS.ROOT) && export NVM_DIR=~/.nvm && source $(BREW.PREFIX)/nvm.sh && export NODE_BINARY=$(NODE.BINARY.MACOS) #&& $(info $(ENV.VARS))
@@ -79,7 +79,7 @@ ci: ci.android
 ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: ios.get.certificates.development ios.automatic.code.signing.disable nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
@@ -165,9 +165,9 @@ endif
 
 install.node: .FORCE
 	$(info $(ENV.VARS))
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install react-native-cli && npm install
+	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install react-native-cli npm install
 ifeq ($(OS), Darwin)
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install ios-deploy && npm install react-native-cli && npm install
+	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install ios-deploy
 #	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
 endif
 
@@ -446,10 +446,10 @@ build.ios.debug: build.ios.react.bundle
 	$(info $(NODE.PREFIX))
 	$(info $(NODE.BINARY.MACOS) )
 ifdef MACOS_KEYCHAIN_PASSWORD
-	security unlock-keychain -p $(MACOS_KEYCHAIN_PASSWORD)
+#	security unlock-keychain -p $(MACOS_KEYCHAIN_PASSWORD)
 else
 	@echo "************note that this prompt can be avoided by exporting MACOS_KEYCHAIN_PASSWORD environment variable in your ~/.zshrc"
-	security unlock-keychain
+#	security unlock-keychain
 endif
 	$(ENV.VARS) && $(NVM.VARS) && fastlane run setup_circle_ci && cd $(IOS.DIR) && $(XCODEBUILD.BIN)  -workspace $(IOS.WORKSPACE) -configuration Debug archive -sdk iphoneos -scheme $(APP.NAME) -archivePath $(IOS.XCARCHIVE)
 
