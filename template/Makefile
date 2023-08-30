@@ -165,9 +165,9 @@ endif
 
 install.node: .FORCE
 #	$(info $(ENV.VARS))
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && npm install react-native-cli --legacy-peer-deps && npm install --legacy-peer-deps
+	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && npm install react-native-cli && npm install
 ifeq ($(OS), Darwin)
-	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && npm install ios-deploy --legacy-peer-deps
+	$(ENV.VARS) && $(NVM.VARS) && $(MAKE) nvm.use && cd $(PROJECT>DIR) && npm install ios-deploy
 	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
 endif
 
