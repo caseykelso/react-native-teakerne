@@ -1,9 +1,24 @@
-ifndef $(ORG.NAME)
-	$(error ORG.NAME must be defined.)
+SHELL := /bin/bash
+ifndef ORG_NAME
+$(error ORG_NAME must be defined.)
+else
+ORG.NAME=$(ORG_NAME)
 endif
-ifndef $(APP.NAME)
-	$(error APP.NAME must be defined.)
+
+ifndef APP_NAME
+$(error APP_NAME must be defined.)
+else
+APP.NAME=$(APP_NAME)
 endif
+
+ifndef BASE_DIR
+$(error BASE_DIR must be defined.)
+else
+BASE.DIR=$(BASE_DIR)
+endif
+
+
+
 CONTACT.EMAIL=yourname@$(ORG.NAME).com
 APP.ID=com.$(ORG.NAME).$(APP.NAME)
 PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
@@ -11,7 +26,6 @@ GIT.ORG=caseykelso
 GIT.REPO=react-native-template
 1PASSWORD.SECRETS.URL="https://1password.com/secretslinkfordecrypt"
 CURRENT_DIR := ${CURDIR}
-SHELL := /bin/bash
 HASH := $(shell git rev-parse --short=10 HEAD)
 TAG := $(shell git describe --exact-match --tags 2>/dev/null)
 ifeq ($(TAG),) #if tag is empty use hash
