@@ -1,6 +1,6 @@
 ORG.NAME=acme
 CONTACT.EMAIL=yourname@$(ORG.NAME).com
-APP.NAME=desolation
+APP.NAME=deso
 APP.ID=com.$(ORG.NAME).$(APP.NAME)
 PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
 GIT.ORG=caseykelso
