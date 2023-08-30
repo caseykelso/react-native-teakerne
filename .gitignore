@@ -89,6 +89,7 @@ dist
 # lock files
 yarn.lock
 package-lock.json
+package.json
 
 # ctags
 tags
@@ -98,6 +99,7 @@ screenshots
 
 # generated files
 .nvmrc
+.npmrc
 
 # secrets
 keystore.jks

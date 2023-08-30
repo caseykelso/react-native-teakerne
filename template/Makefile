@@ -2,6 +2,7 @@ ORG.NAME=acme
 CONTACT.EMAIL=yourname@$(ORG.NAME).com
 APP.NAME=desolation
 APP.ID=com.$(ORG.NAME).$(APP.NAME)
+PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
 GIT.ORG=caseykelso
 GIT.REPO=react-native-template
 1PASSWORD.SECRETS.URL="https://1password.com/secretslinkfordecrypt"
@@ -20,7 +21,7 @@ DOWNLOADS.DIR=$(BASE.DIR)/downloads
 NODE.MODULES.DIR=$(BASE.DIR)/node_modules
 NODE.BUILD.DIR=$(BASE.DIR)/build
 SHELL := /bin/bash
-ANDROID.DIR=$(BASE.DIR)/android
+ANDROID.DIR=$(PROJECT.DIR)/android
 ifeq ($(OS),Darwin)
 SED=gsed
 ANDROID.SDK.ARCHIVE=commandlinetools-mac-9477386_latest.zip
@@ -40,7 +41,6 @@ EMULATOR.BIN=$(ANDROID.SDK.DIR)/platforms/tools/emulator
 LOCAL.PROPERTIES=$(ANDROID.DIR)/local.properties
 AVD.DIR=$(DOWNLOADS.DIR)/avds
 BREW.PREFIX=/usr/local/opt/nvm
-PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
 IOS.DIR=$(PROJECT.DIR)/ios
 IOS.WORKSPACE=$(IOS.DIR)/$(APP.NAME).xcworkspace
 IOS.PROJECT=$(IOS.DIR)/$(APP.NAME).xcodeproj
@@ -76,10 +76,10 @@ ENCRYPT.SCRIPT=$(SCRIPTS.DIR)/encrypt.sh
 DECRYPT.SIGNING.SCRIPT=$(SCRIPTS.DIR)/decrypt_signing_key.sh
 ENCRYPT.SIGNING.SCRIPT=$(SCRIPTS.DIR)/encrypt_signing_key.sh
 ci: ci.android
-ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
+ci.android.common: package.json nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: package.json ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(BASE.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
@@ -87,7 +87,7 @@ ANDROID.BUNDLE.DEBUG.ORIG=$(BASE.DIR)/android/app/build/outputs/bundle/debug/app
 ANDROID.BUNDLE.RELEASE.ORIG=$(BASE.DIR)/android/app/build/outputs/bundle/release/app-release.aab
 ANDROID.BUNDLE.DEBUG=$(APP.NAME)-debug-$(VERSION).aab
 
-ifndef ANDROID_SIGNED_BUILD
+ifndef ANDROID_SIGNED_BUILD18.17.1
 ANDROID.BUNDLE.RELEASE=$(APP.NAME)-release-unsigned-$(VERSION).aab
 else
 ANDROID.BUNDLE.RELEASE=$(APP.NAME)-release-signed-$(VERSION).aab
@@ -110,12 +110,16 @@ KEYSTORE.PATH=$(BASE.DIR)
 BUILD.NUMBER.MAGIC.NUMBER=0000001
 SCREENSHOTS.DIR=$(BASE.DIR)/screenshots
 DATETIME:=$(shell date +%Y%m%d%H%M%S)
+#ifneq (,$(wildcard $(BASE.DIR)/package.json))
 NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
+#else
+#NODE.VERSION=18.17.1
+#endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
 REACT.NATIVE.INSTALL.VERSION=0.68.7
 
-create.project: .FORCE
-	npx react-native@0.68.7 init $(APP.NAME)
+create.project: nvmrc
+	$(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.68.7 init $(APP.NAME)
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
@@ -132,6 +136,9 @@ detox.build.release.android: .FORCE
 
 detox.run.release.android: .FORCE #log levels info, verbose, trace
 	$(ENV.VARS) && $(NVM.VARS) && detox test --loglevel verbose --configuration android.release
+
+package.json: .FORCE
+	cp -f $(TEMPLATE.DIR)/package.json.template $(BASE.DIR)/package.json
 
 nvm.install: nvmrc
 	. ${HOME}/.nvm/nvm.sh --no-use && nvm install $(NODE.VERSION)
@@ -201,9 +208,9 @@ upload.ios: .FORCE
 decrypt.secrets: .FORCE
 ifndef ACME_ANDROID_SECRETS
 	@echo "decrypting build secrets, enter password found here: $(1PASSWORD.SECRETS.URL)"
-	$(DECRYPT.SCRIPT)
+#	$(DECRYPT.SCRIPT)
 else #ACME_ANDROID_SECRETS
-	export MOBILE_KEY=$(ACME_ANDROID_SECRETS) && $(DECRYPT.SCRIPT)
+#	export MOBILE_KEY=$(ACME_ANDROID_SECRETS) && $(DECRYPT.SCRIPT)
 endif #ACME_ANDROID_SECRETS
 
 decrypt.signing: .FORCE
@@ -364,7 +371,7 @@ android.sdk.platform: .FORCE
 	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --install "platform-tools" "platforms;android-30" --sdk_root=$(ANDROID.SDK.DIR)/platforms
 
 build.android.react.bundle: install.node
-	$(ENV.VARS) && $(MAKE) nvm.use && react-native bundle --verbose --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+	$(ENV.VARS) && $(MAKE) nvm.use && react-native bundle --verbose --platform android --dev false --entry-file $(PROJECT.DIR)/index.js --bundle-output $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle --assets-dest $(PROJECT.DIR)/android/app/src/main/res
 
 dist.directory: .FORCE
 	mkdir -p $(DIST.DIR)
@@ -569,6 +576,8 @@ clean: clean.node.modules clean.ios
 	rm -rf $(DIST.DIR)
 	rm -f $(BASE.DIR)/android/app/src/main/assets/index.android.bundle
 	rm -rf $(IOS.OUTPUT)
+	rm -rf $(PROJECT.DIR)
+	rm -f $(BASE.DIR)/package.json
 
 .FORCE:
 
