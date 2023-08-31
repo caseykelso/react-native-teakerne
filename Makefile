@@ -97,7 +97,7 @@ IOS.PROJECT=$(IOS.DIR)/$(APP.NAME).xcodeproj
 IOS.OUTPUT=$(IOS.DIR)/output
 IOS.XCARCHIVE=$(IOS.OUTPUT)/$(APP.NAME).xcarchive
 IOS.ARCHIVE=$(APP.NAME)-$(HASH).tar.gz
-IOS.APP.PATH=$(BASE.DIR)/ios/output/$(APP.NAME).xcarchive/Products/Applications/$(APP.NAME).app
+IOS.APP.PATH=$(PROJECT.DIR)/ios/output/$(APP.NAME).xcarchive/Products/Applications/$(APP.NAME).app
 IOS.CERTIFICATE.DISTRIBUTION="Apple Distribution: TODO"
 IOS.CERTIFICATE.DEVELOPMENT="Apple Development: TODO"
 
@@ -535,7 +535,7 @@ xcode.list.connected.devices: .FORCE
 	xcrun xctrace list devices
 
 ios.run.simulator: .FORCE
-	xcrun simctl install booted $(BASE.DIR)/ios/output/$(APP.NAME).xcarchive/Products/Applications/$(APP.NAME).app
+	xcrun simctl install booted $(PROJECT.DIR)/ios/output/$(APP.NAME).xcarchive/Products/Applications/$(APP.NAME).app
 #	xcrun simctl launch booted app.id
 
 keys: .FORCE
@@ -612,7 +612,7 @@ ios.xcode.set.app.id: .FORCE
 	$(SED) -i "s/org.reactjs.native.example/$(APP.ID.ROOT)/g" $(IOS.DIR)/$(APP.NAME).xcodeproj/project.pbxproj
 
 xcode.launch: .FORCE
-	open $(BASE.DIR)/ios/$(APP.NAME).xcodeproj
+	open $(PROJECT.DIR)/ios/$(APP.NAME).xcodeproj
 
 clean.node.modules: .FORCE
 	rm -rf $(NODE.MODULES.DIR)
@@ -622,14 +622,12 @@ clean: clean.node.modules clean.ios
 	rm -rf $(DOWNLOADS.DIR)
 	rm -rf $(INSTALLED.HOST.DIR)
 	rm -rf $(NODE.BUILD.DIR)
-	rm -f $(BASE.DIR)/yarn.lock
-	rm -f $(BASE.DIR)/package-lock.json
-	rm -rf $(BASE.DIR)/android/.gradle
+	rm -rf $(PROJECT.DIR)/android/.gradle
 	rm -f $(LOCAL.PROPERTIES)
-	rm -f $(BASE.DIR)/android/app/src/main/assets/index.android.bundle
-	rm -rf $(BASE.DIR)/android/app/build
+	rm -f $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle
+	rm -rf $(PROJECT.DIR)/android/app/build
 	rm -rf $(DIST.DIR)
-	rm -f $(BASE.DIR)/android/app/src/main/assets/index.android.bundle
+	rm -f $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle
 	rm -rf $(IOS.OUTPUT)
 	rm -rf $(PROJECT.DIR)
 	rm -f $(BASE.DIR)/yarn-error.log
