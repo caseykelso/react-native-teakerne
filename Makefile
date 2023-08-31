@@ -275,13 +275,13 @@ encrypt.signing: .FORCE
 	$(ENCRYPT.SIGNING.SCRIPT)
 
 run: .FORCE
-	$(ENV.VARS) && $(MAKE) nvm.use && npm start && react-native start && react-native run-android
+	$(ENV.VARS) && $(NVM.VARS) && npm start && react-native start && react-native run-android
 
 react.native.run: .FORCE
-	$(ENV.VARS) && $(MAKE) nvm.use && npm run android
+	$(ENV.VARS) && $(NVM.VARS) && npm run android
 
 z: .FORCE
-	$(ENV.VARS) && $(MAKE) nvm.use && npm start
+	$(ENV.VARS) && $(NVM.VARS) && npm start
 
 adb.connect: .FORCE
 ifndef MOBILE_IP
@@ -330,11 +330,11 @@ adb.devices: .FORCE
 
 logs.android.react-native: .FORCE
 	adb reverse tcp:8081 tcp:8081 # forward android device port over USB so that react-native debug tools can access the logs
-	$(ENV.VARS) && $(MAKE) nvm.use && react-native log-android
+	$(ENV.VARS) && $(NVM.VARS) && react-native log-android
 	adb reverse --remove-all
 
 logs.ios.react-native: .FORCE
-	$(ENV.VARS) && $(MAKE) nvm.use && react-native log-ios
+	$(ENV.VARS) && $(NVM.VARS) && react-native log-ios
 
 logs.ios.springboard: .FORCE # filter only the springboard launcher/home screen process
 	idevicesyslog --process SpringBoard
@@ -424,13 +424,15 @@ build.android.react.bundle: install.node
 dist.directory: .FORCE
 	mkdir -p $(DIST.DIR)
 
-build.android.bundle.debug: dist.directory build.android.react.bundle
+_build.android.bundle.debug: .FORCE
 	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleDebug
-	$(MAKE) deploy.android.bundle.debug
 
-build.android.bundle.release: dist.directory build.android.react.bundle
+build.android.bundle.debug: dist.directory build.android.react.bundle _build.android.bundle.debug deploy.android.bundle.debug
+
+_build.android.bundle.release: .FORCE
 	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleRelease
-	$(MAKE) deploy.android.bundle.release
+
+build.android.bundle.release: dist.directory build.android.react.bundle _build.android.bundle.release deploy.android.bundle.release
 
 deploy.android.bundle.debug: dist.directory
 	cd $(DIST.DIR) && cp $(ANDROID.BUNDLE.DEBUG.ORIG) $(DIST.DIR)/$(ANDROID.BUNDLE.DEBUG)
@@ -448,13 +450,15 @@ android.remove.duplicate.assets: .FORCE
 	rm -f $(ANDROID.DIR)/app/build/generated/res/createBundleReleaseJsAndAssets/drawable-mdpi/node_modules_reactnative_libraries_newappscreen_components_logo.png
 	rm -f $(ANDROID.DIR)/app/src/main/res/drawable-mdpi/node_modules_reactnative_libraries_newappscreen_components_logo.png
 
-build.apk.release:  build.android.react.bundle android.remove.duplicate.assets
+_build.apk.release: .FORCE
 	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease
-	$(MAKE) deploy.apk.release
 
-build.apk.debug: build.android.react.bundle
+build.apk.release:  build.android.react.bundle android.remove.duplicate.assets _build.apk.release deploy.apk.release
+
+_build.apk.debug: .FORCE
 	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug
-	$(MAKE) deploy.apk.debug
+
+build.apk.debug: build.android.react.bundle _build.apk.debug deploy.apk.debug
 
 build.apk.test.debug: build.android.react.bundle
 	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug assembleAndroidTest  -DtestBuildType=debug
@@ -462,15 +466,15 @@ build.apk.test.debug: build.android.react.bundle
 build.apk.test.release: build.android.react.bundle
 	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
 
-build.android.debug.and.run: build.android.react.bundle # build and run using gradle's installDebug target
+_build.android.debug.and.run: .FORCE
 	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew installDebug --stacktrace --debug --info
-	$(MAKE) deploy.apk.debug # update the dist directory for house keeping purposes
-	$(MAKE) adb.kill.app adb.run
 
-build.android.release.and.run: build.android.react.bundle # build and run using gradle's installRelease target
-	$(ENV.VARS) &&  cd $(ANDROID.DIR) && ./gradlew installRelease
-	$(MAKE) deploy.apk.release # update the dist directory for house keeping purposes
-	$(MAKE) adb.kill.app adb.run
+build.android.debug.and.run: build.android.react.bundle _build.android.debug.and.run deploy.apk.debug adb.kill.app adb.run # build and run using gradle's installDebug target
+
+_build.android.release.and.run: .FORCE
+	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew installRelease
+
+build.android.release.and.run: build.android.react.bundle _build.android.release.and.run deploy.apk.release adb.kill.app adb.run # build and run using gradle's installRelease target
 
 build.ios.react.bundle: install.node
 	$(ENV.VARS) &&  $(NVM.VARS) && cd $(PROJECT.DIR) && react-native --help #bundle --verbose --platform ios --dev false --entry-file index.js --bundle-output $(IOS.DIR)/main.jsbundle --assets-dest $(IOS.DIR)
@@ -631,6 +635,7 @@ clean: clean.node.modules clean.ios
 	rm -rf $(IOS.OUTPUT)
 	rm -f $(BASE.DIR)/yarn-error.log
 	rm -rf $(PROJECT.DIR)/node_modules
+	rm -rf $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle
 
 .FORCE:
 
