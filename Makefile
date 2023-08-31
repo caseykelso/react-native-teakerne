@@ -17,13 +17,36 @@ else
 BASE.DIR=$(BASE_DIR)
 endif
 
+ifndef APPLE_ACCOUNT
+$(error APPLE_ACCOUNT must be defined.)
+else
+APPLE.ACCOUNT=$(APPLE_ACCOUNT)
+endif
+
+ifndef APP_ID
+$(error APP_ID must be defined.)
+else
+APP.ID=$(APP_ID)
+endif
+
+ifndef GIT_ORG
+$(error GIT_ORG must be defined.)
+else
+GIT.ORG=$(GIT_ORG)
+endif
+
+ifndef GIT_REPO
+$(error GIT_REPO must be defined.)
+else
+GIT.REPO=$(GIT_REPO)
+endif
+
+
 
 
 CONTACT.EMAIL=yourname@$(ORG.NAME).com
-APP.ID=com.$(ORG.NAME).$(APP.NAME)
+APP.ID=$(APP_ID)
 PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
-GIT.ORG=caseykelso
-GIT.REPO=react-native-template
 1PASSWORD.SECRETS.URL="https://1password.com/secretslinkfordecrypt"
 CURRENT_DIR := ${CURDIR}
 HASH := $(shell git rev-parse --short=10 HEAD)
@@ -97,7 +120,7 @@ ci: ci.android
 ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: ios.get.certificates.development ios.automatic.code.signing.disable nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
@@ -467,7 +490,7 @@ ifdef MACOS_KEYCHAIN_PASSWORD
 #	security unlock-keychain -p $(MACOS_KEYCHAIN_PASSWORD)
 else
 	@echo "************note that this prompt can be avoided by exporting MACOS_KEYCHAIN_PASSWORD environment variable in your ~/.zshrc"
-#	security unlock-keychain
+	security unlock-keychain
 endif
 	$(ENV.VARS) && $(NVM.VARS) && fastlane run setup_circle_ci && cd $(IOS.DIR) && $(XCODEBUILD.BIN)  -workspace $(IOS.WORKSPACE) -configuration Debug archive -sdk iphoneos -scheme $(APP.NAME) -archivePath $(IOS.XCARCHIVE)
 
@@ -540,11 +563,11 @@ ios.available.certificates: .FORCE
 	security find-identity -p codesigning -v
 
 ios.fastlane: .FORCE
-	fastlane cert --username $(CONTACT.EMAIL)
-	fastlane sigh --username $(CONTACT.EMAIL)
+	fastlane cert --username $(APPLE.ACCOUNT)
+	fastlane sigh --username $(APPLE.ACCOUNT)
 
 ios.fastlane.nuke: .FORCE #nuke your ios certificates
-	cd $(IOS.DIR) && export FASTLANE_USER="$(CONTACT.EMAIL)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane run match_nuke
+	cd $(IOS.DIR) && export FASTLANE_USER="$(APPLE.ACCOUNT)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane run match_nuke
 
 ios.install.device: .FORCE
 	$(ENV.VARS) && $(NVM.VARS) && ios-deploy --verbose --uninstall --bundle "$(IOS.APP.PATH)"
@@ -553,19 +576,19 @@ ios.devices: .FORCE
 	$(ENV.VARS) && $(NVM.VARS) && ios-deploy --detect
 
 ios.create.development.provisioning.profile.generate.certificates: .FORCE # note that before you do this you want to delete the keys in git repo $(GIT.ORG)/$(GIT.REPO) and delete the development certificate from the apple app dashboard under account "youraccount@acme.com"
-	cd $(IOS.DIR) && export FASTLANE_USER="$(CONTACT.EMAIL)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match development --app_identifier "$(APP.ID)" --username "$(CONTACT.EMAIL)"
+	cd $(IOS.DIR) && export FASTLANE_USER="$(APPLE.ACCOUNT)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match development --app_identifier "$(APP.ID)" --username "$(APPLE.ACCOUNT)"
 
-ios.create.appstore.provisioning.profile.generate.certificates: .FORCE # note that before you do this you want to delete the keys in git repo $(GIT.ORG)/$(GIT.REPO) and delete the development certificate from the apple app dashboard under account "$(CONTACT.EMAIL)"
+ios.create.appstore.provisioning.profile.generate.certificates: .FORCE # note that before you do this you want to delete the keys in git repo $(GIT.ORG)/$(GIT.REPO) and delete the development certificate from the apple app dashboard under account "$(APPLE.ACCOUNT)"
 	@echo "encrypting ios secrets with this key , enter password found here: $(1PASSWORD.SECRETS.URL)"
-	cd $(IOS.DIR) && export FASTLANE_USER="$(CONTACT.EMAIL)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match appstore --app_identifier "$(APP.ID)" --username "$(CONTACT.EMAIL)"
+	cd $(IOS.DIR) && export FASTLANE_USER="$(APPLE.ACCOUNT)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match appstore --app_identifier "$(APP.ID)" --username "$(APPLE.ACCOUNT)"
 
 ios.get.certificates.development: .FORCE
 	@echo "decrypting ios secrets, enter password found here: $(1PASSWORD.SECRETS.URL)"
-#	cd $(IOS.DIR) && fastlane run setup_circle_ci && export FASTLANE_USER="$(CONTACT.EMAIL)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match development --readonly --app_identifier "$(APP.ID)" --username "$(CONTACT.EMAIL)"
+	cd $(IOS.DIR) && fastlane run setup_circle_ci && export FASTLANE_USER="$(APPLE.ACCOUNT)" && export MATCH_GIT_BRANCH="apple-keys" && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match development --readonly --app_identifier "$(APP.ID)" --username "$(APPLE.ACCOUNT)"
 
 ios.get.certificates.appstore: .FORCE
 	@echo "decrypting ios secrets, enter password found here: $(1PASSWORD.SECRETS.URL)"
-	cd $(IOS.DIR) && export FASTLANE_USER="$(CONTACT.EMAIL)" export MATCH_GIT_BRANCH="apple-keys" && && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match appstore --readonly --app_identifier "$(APP.ID)" --username "$(CONTACT.EMAIL)"
+	cd $(IOS.DIR) && export FASTLANE_USER="$(APPLE.ACCOUNT)" export MATCH_GIT_BRANCH="apple-keys" && && export MATCH_GIT_URL="git@github.com:$(GIT.ORG)/$(GIT.REPO).git" && fastlane match appstore --readonly --app_identifier "$(APP.ID)" --username "$(APPLE.ACCOUNT)"
 
 ios.automatic.code.signing.disable: .FORCE
 	fastlane run automatic_code_signing path:"$(IOS.DIR)/$(APP.NAME).xcodeproj" use_automatic_signing:"false"
