@@ -629,8 +629,8 @@ clean: clean.node.modules clean.ios
 	rm -rf $(DIST.DIR)
 	rm -f $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle
 	rm -rf $(IOS.OUTPUT)
-	rm -rf $(PROJECT.DIR)
 	rm -f $(BASE.DIR)/yarn-error.log
+	rm -rf $(PROJECT.DIR)/node_modules
 
 .FORCE:
 
