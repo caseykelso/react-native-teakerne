@@ -29,6 +29,12 @@ else
 APP.ID=$(APP_ID)
 endif
 
+ifndef APP_ID_ROOT
+$(error APP_ID_ROOT must be defined.)
+else
+APP.ID.ROOT=$(APP_ID_ROOT)
+endif
+
 ifndef GIT_ORG
 $(error GIT_ORG must be defined.)
 else
@@ -123,7 +129,7 @@ ci: ci.android
 ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: ios.get.certificates.development ios.update.apple.development.team nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: ios.update.apple.development.team ios.get.certificates.development ios.xcode.set.app.id nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
@@ -601,6 +607,9 @@ ios.update.apple.development.team: .FORCE
 
 ios.provisioning.profile.install: .FORCE
 	fastlane run install_provisioning_profile path:"$(BASE.DIR)/AppStore_$(APP.ID).mobileprovision"
+
+ios.xcode.set.app.id: .FORCE
+	$(SED) -i "s/org.reactjs.native.example/$(APP.ID.ROOT)/g" $(IOS.DIR)/$(APP.NAME).xcodeproj/project.pbxproj
 
 xcode.launch: .FORCE
 	open $(BASE.DIR)/ios/$(APP.NAME).xcodeproj
