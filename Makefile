@@ -41,8 +41,11 @@ else
 GIT.REPO=$(GIT_REPO)
 endif
 
-
-
+ifndef APPLE_DEVELOPMENT_TEAM
+$(error APPLE_DEVELOPMENT_TEAM must be defined.)
+else
+APPLE.DEVELOPMENT.TEAM=$(APPLE_DEVELOPMENT_TEAM)
+endif
 
 CONTACT.EMAIL=yourname@$(ORG.NAME).com
 APP.ID=$(APP_ID)
@@ -120,7 +123,7 @@ ci: ci.android
 ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.sdk install.node build.apk.release build.apk.debug build.android.bundle.debug build.android.bundle.release 
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
-ci.ios: ios.get.certificates.development nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios: ios.get.certificates.development ios.update.apple.development.team nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
@@ -592,6 +595,9 @@ ios.get.certificates.appstore: .FORCE
 
 ios.automatic.code.signing.disable: .FORCE
 	fastlane run automatic_code_signing path:"$(IOS.DIR)/$(APP.NAME).xcodeproj" use_automatic_signing:"false"
+
+ios.update.apple.development.team: .FORCE
+	fastlane run update_project_team  path:"$(IOS.DIR)/$(APP.NAME).xcodeproj" teamid:"$(APPLE.DEVELOPMENT.TEAM)"
 
 ios.provisioning.profile.install: .FORCE
 	fastlane run install_provisioning_profile path:"$(BASE.DIR)/AppStore_$(APP.ID).mobileprovision"
