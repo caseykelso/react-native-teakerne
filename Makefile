@@ -419,7 +419,7 @@ android.sdk.platform: .FORCE
 
 build.android.react.bundle: install.node
 	mkdir -p $(PROJECT.DIR)/android/app/src/main/assets
-	$(ENV.VARS) && $(MAKE) nvm.use && cd $(PROJECT.DIR) && react-native bundle --verbose --platform android --dev false --entry-file $(PROJECT.DIR)/index.js --bundle-output $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle --assets-dest $(PROJECT.DIR)/android/app/src/main/res
+	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && react-native bundle --verbose --platform android --dev false --entry-file $(PROJECT.DIR)/index.js --bundle-output $(PROJECT.DIR)/android/app/src/main/assets/index.android.bundle --assets-dest $(PROJECT.DIR)/android/app/src/main/res
 
 dist.directory: .FORCE
 	mkdir -p $(DIST.DIR)
