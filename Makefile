@@ -132,9 +132,9 @@ ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key pac
 ci.ios: ios.update.apple.development.team ios.get.certificates.development ios.xcode.set.app.id nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
-APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
-ANDROID.BUNDLE.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/bundle/debug/app-debug.aab
-ANDROID.BUNDLE.RELEASE.ORIG=$(PROJECT.DIR)/android/app/build/outputs/bundle/release/app-release.aab
+APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/$(APP_NAME)-debug.apk
+ANDROID.BUNDLE.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/bundle/debug/$(APP_NAME)-debug.aab
+ANDROID.BUNDLE.RELEASE.ORIG=$(PROJECT.DIR)/android/app/build/outputs/bundle/release/$(APP_NAME)-release.aab
 ANDROID.BUNDLE.DEBUG=$(APP.NAME)-debug-$(VERSION).aab
 
 ifndef ANDROID_SIGNED_BUILD
@@ -146,7 +146,7 @@ endif
 ANDROID.UPLOAD.KEY.ALIAS=key0
 ANDROID.UPLOAD.KEY.KEYSTORE=$(BASE.DIR)/keystore.jks
 APK.DEBUG=$(APP.NAME)-debug-$(VERSION).apk
-APK.RELEASE.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/release/app-release.apk
+APK.RELEASE.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/release/$(APP_NAME)-release.apk
 APK.RELEASE=$(APP.NAME)-release-$(VERSION).apk
 
 ifndef ANDROID_SIGNED_BUILD
@@ -215,9 +215,9 @@ endif
 
 install.node: .FORCE
 	$(info $(ENV.VARS))
-	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install react-native-cli npm install
+	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install react-native-cli --legacy-peer-deps &&  npm install --legacy-peer-deps
 ifeq ($(OS), Darwin)
-	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install ios-deploy
+	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install ios-deploy --legacy-peer-deps
 #	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
 endif
 
@@ -425,12 +425,15 @@ dist.directory: .FORCE
 	mkdir -p $(DIST.DIR)
 
 _build.android.bundle.debug: .FORCE
-	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleDebug
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew --debug bundleDebug
+
+clean.android: .FORCE
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew clean
 
 build.android.bundle.debug: dist.directory build.android.react.bundle _build.android.bundle.debug deploy.android.bundle.debug
 
 _build.android.bundle.release: .FORCE
-	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew bundleRelease
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew --debug bundleRelease
 
 build.android.bundle.release: dist.directory build.android.react.bundle _build.android.bundle.release deploy.android.bundle.release
 
@@ -451,20 +454,20 @@ android.remove.duplicate.assets: .FORCE
 	rm -f $(ANDROID.DIR)/app/src/main/res/drawable-mdpi/node_modules_reactnative_libraries_newappscreen_components_logo.png
 
 _build.apk.release: .FORCE
-	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew --debug assembleRelease
 
 build.apk.release:  build.android.react.bundle android.remove.duplicate.assets _build.apk.release deploy.apk.release
 
 _build.apk.debug: .FORCE
-	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug
+	$(ENV.VARS) && $(NVM.VARS) && cd $(ANDROID.DIR) && ./gradlew --debug --stacktrace assembleDebug
 
 build.apk.debug: build.android.react.bundle _build.apk.debug deploy.apk.debug
 
 build.apk.test.debug: build.android.react.bundle
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug assembleAndroidTest  -DtestBuildType=debug
+	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleDebug --debug assembleAndroidTest  -DtestBuildType=debug
 
 build.apk.test.release: build.android.react.bundle
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
+	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew assembleRelease --debug assembleAndroidTest -DtestBuildType=release
 
 _build.android.debug.and.run: .FORCE
 	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew installDebug --stacktrace --debug --info
@@ -472,7 +475,7 @@ _build.android.debug.and.run: .FORCE
 build.android.debug.and.run: build.android.react.bundle _build.android.debug.and.run deploy.apk.debug adb.kill.app adb.run # build and run using gradle's installDebug target
 
 _build.android.release.and.run: .FORCE
-	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew installRelease
+	$(ENV.VARS) && cd $(ANDROID.DIR) && ./gradlew --debug installRelease
 
 build.android.release.and.run: build.android.react.bundle _build.android.release.and.run deploy.apk.release adb.kill.app adb.run # build and run using gradle's installRelease target
 
