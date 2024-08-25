@@ -103,7 +103,7 @@ IOS.CERTIFICATE.DEVELOPMENT="Apple Development: TODO"
 
 ifeq ($(OS),Darwin)
 $(info MacOS Detected)
-JAVA.HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
+JAVA.HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-17.jdk/Contents/Home
 $(info source $(BREW.PREFIX)/nvm.sh && npm config get prefix)
 NODE.PREFIX=$(shell source $(BREW.PREFIX)/nvm.sh && npm config get prefix)
 NODE.BINARY.MACOS=$(NODE.PREFIX)/bin/node
