@@ -18,37 +18,37 @@ BASE.DIR=$(BASE_DIR)
 endif
 
 ifndef APPLE_ACCOUNT
-$(error APPLE_ACCOUNT must be defined.)
+$(warning APPLE_ACCOUNT must be defined.)
 else
 APPLE.ACCOUNT=$(APPLE_ACCOUNT)
 endif
 
 ifndef APP_ID
-$(error APP_ID must be defined.)
+$(warning APP_ID must be defined.)
 else
 APP.ID=$(APP_ID)
 endif
 
 ifndef APP_ID_ROOT
-$(error APP_ID_ROOT must be defined.)
+$(warning APP_ID_ROOT must be defined.)
 else
 APP.ID.ROOT=$(APP_ID_ROOT)
 endif
 
 ifndef GIT_ORG
-$(error GIT_ORG must be defined.)
+$(warning GIT_ORG must be defined.)
 else
 GIT.ORG=$(GIT_ORG)
 endif
 
 ifndef GIT_REPO
-$(error GIT_REPO must be defined.)
+$(warning GIT_REPO must be defined.)
 else
 GIT.REPO=$(GIT_REPO)
 endif
 
 ifndef APPLE_DEVELOPMENT_TEAM
-$(error APPLE_DEVELOPMENT_TEAM must be defined.)
+$(warning APPLE_DEVELOPMENT_TEAM must be defined.)
 else
 APPLE.DEVELOPMENT.TEAM=$(APPLE_DEVELOPMENT_TEAM)
 endif
@@ -103,14 +103,14 @@ IOS.CERTIFICATE.DEVELOPMENT="Apple Development: TODO"
 
 ifeq ($(OS),Darwin)
 $(info MacOS Detected)
-JAVA.HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
+JAVA.HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-17.jdk/Contents/Home
 $(info source $(BREW.PREFIX)/nvm.sh && npm config get prefix)
 NODE.PREFIX=$(shell source $(BREW.PREFIX)/nvm.sh && npm config get prefix)
 NODE.BINARY.MACOS=$(NODE.PREFIX)/bin/node
 XCODEBUILD.BIN=/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
 endif
 ifeq ($(OS),Linux)
-JAVA.HOME=/usr/lib/jvm/java-11-openjdk-amd64/
+JAVA.HOME=/usr/lib/jvm/java-17-openjdk-amd64/
 endif
 ENV.VARS.ROOT=export JAVA_HOME=$(JAVA.HOME) && export ANDROID_HOME=$(ANDROID.SDK.DIR)/platforms && export PATH=$(ANDROID.HOME)/tools:$(ANDROID.HOME)/platform-tools:$(ANDROID.SDK.DIR)/bin:$(PROJECT.DIR)/node_modules/.bin:$(PATH)  && export ANDROID_SDK_ROOT=$(ANDROID.SDK.DIR)/platforms
 NPM.GLOBAL.PATH=$(npm config get prefix)
@@ -163,13 +163,13 @@ DATETIME:=$(shell date +%Y%m%d%H%M%S)
 #ifneq (,$(wildcard $(BASE.DIR)/package.json))
 #NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
 #else
-NODE.VERSION=18.17.1
+NODE.VERSION=20.17.0
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
 REACT.NATIVE.INSTALL.VERSION=0.68.7
 
 create.project: nvmrc
-	$(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.68.7 init $(APP.NAME) && cd $(PROJECT.DIR) && npm install react-native-cli
+	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.75.2 init $(APP.NAME)  && cd $(PROJECT.DIR) && npm install react-native-cli 
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
@@ -362,6 +362,7 @@ android.sdk: android.sdk.download android.sdk.licenses android.sdk.platform
 android.sdk.download: .FORCE
 	mkdir -p $(DOWNLOADS.DIR)
 	rm -f $(DOWNLOADS.DIR)/$(ANDROID.SDK.ARCHIVE)
+	rm -rf $(ANDROID.SDK.DIR)
 	cd $(DOWNLOADS.DIR) && wget $(ANDROID.SDK.URL)
 	cd $(DOWNLOADS.DIR) && unzip $(ANDROID.SDK.ARCHIVE)
 	cd $(ANDROID.SDK.DIR)
