@@ -362,6 +362,7 @@ android.sdk: android.sdk.download android.sdk.licenses android.sdk.platform
 android.sdk.download: .FORCE
 	mkdir -p $(DOWNLOADS.DIR)
 	rm -f $(DOWNLOADS.DIR)/$(ANDROID.SDK.ARCHIVE)
+	rm -rf $(ANDROID.SDK.DIR)
 	cd $(DOWNLOADS.DIR) && wget $(ANDROID.SDK.URL)
 	cd $(DOWNLOADS.DIR) && unzip $(ANDROID.SDK.ARCHIVE)
 	cd $(ANDROID.SDK.DIR)
