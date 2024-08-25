@@ -3,7 +3,9 @@ Mobile app for setting up, configuring, and testing the sensors
 
 ## Ubuntu 22.04 Environment Setup
 ```bash
-sudo apt-get install git npm exuberant-ctags xclip ideviceinstaller
+sudo apt-get install git npm exuberant-ctags xclip ideviceinstaller openjdk-17-jdk
+update-java-alternatives --list
+sudo update-java-alternatives  --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 ```
 
@@ -14,7 +16,7 @@ brew install ctags git cgrep wget macvim npm nvm md5sha1sum mas bash-completion 
 echo '[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"' >> ~/.bash_profile
 source ~/.bash_profile
 brew tap AdoptOpenJDK/openjdk
-brew install --cask adoptopenjdk11
+brew install --cask adoptopenjdk17
 brew uninstall --ignore-dependencies node 
 brew uninstall --force node 
 mkdir ~/.nvm
