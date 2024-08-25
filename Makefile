@@ -18,37 +18,37 @@ BASE.DIR=$(BASE_DIR)
 endif
 
 ifndef APPLE_ACCOUNT
-$(error APPLE_ACCOUNT must be defined.)
+$(warning APPLE_ACCOUNT must be defined.)
 else
 APPLE.ACCOUNT=$(APPLE_ACCOUNT)
 endif
 
 ifndef APP_ID
-$(error APP_ID must be defined.)
+$(warning APP_ID must be defined.)
 else
 APP.ID=$(APP_ID)
 endif
 
 ifndef APP_ID_ROOT
-$(error APP_ID_ROOT must be defined.)
+$(warning APP_ID_ROOT must be defined.)
 else
 APP.ID.ROOT=$(APP_ID_ROOT)
 endif
 
 ifndef GIT_ORG
-$(error GIT_ORG must be defined.)
+$(warning GIT_ORG must be defined.)
 else
 GIT.ORG=$(GIT_ORG)
 endif
 
 ifndef GIT_REPO
-$(error GIT_REPO must be defined.)
+$(warning GIT_REPO must be defined.)
 else
 GIT.REPO=$(GIT_REPO)
 endif
 
 ifndef APPLE_DEVELOPMENT_TEAM
-$(error APPLE_DEVELOPMENT_TEAM must be defined.)
+$(warning APPLE_DEVELOPMENT_TEAM must be defined.)
 else
 APPLE.DEVELOPMENT.TEAM=$(APPLE_DEVELOPMENT_TEAM)
 endif
