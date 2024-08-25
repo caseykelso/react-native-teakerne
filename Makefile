@@ -163,7 +163,7 @@ DATETIME:=$(shell date +%Y%m%d%H%M%S)
 #ifneq (,$(wildcard $(BASE.DIR)/package.json))
 #NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
 #else
-NODE.VERSION=20.10.0
+NODE.VERSION=18.17.1
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
 REACT.NATIVE.INSTALL.VERSION=0.68.7
