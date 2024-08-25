@@ -1,5 +1,7 @@
 # Teakerne - A Makefile project for building, deploying, and debugging react-native android and ios applications from the CLI using macos or linux. This project unifies the workflow for both target platforms.
-Mobile app for setting up, configuring, and testing the sensors
+**DO NOT USE THIS REPO DIRECTLY**
+** Fork this REPO and build your app against this helloworld example **
+https://github.com/caseykelso/react-native-helloworld
 
 ## Ubuntu 22.04 Environment Setup
 ```bash
