@@ -169,7 +169,7 @@ NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERS
 REACT.NATIVE.INSTALL.VERSION=0.68.7
 
 create.project: nvmrc
-	$(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.68.7 init $(APP.NAME) && cd $(PROJECT.DIR) && npm install react-native-cli
+	$(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.68.7 init $(APP.NAME) --npm && cd $(PROJECT.DIR) && npm install react-native-cli
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
