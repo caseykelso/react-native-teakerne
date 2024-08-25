@@ -110,7 +110,7 @@ NODE.BINARY.MACOS=$(NODE.PREFIX)/bin/node
 XCODEBUILD.BIN=/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
 endif
 ifeq ($(OS),Linux)
-JAVA.HOME=/usr/lib/jvm/java-11-openjdk-amd64/
+JAVA.HOME=/usr/lib/jvm/java-17-openjdk-amd64/
 endif
 ENV.VARS.ROOT=export JAVA_HOME=$(JAVA.HOME) && export ANDROID_HOME=$(ANDROID.SDK.DIR)/platforms && export PATH=$(ANDROID.HOME)/tools:$(ANDROID.HOME)/platform-tools:$(ANDROID.SDK.DIR)/bin:$(PROJECT.DIR)/node_modules/.bin:$(PATH)  && export ANDROID_SDK_ROOT=$(ANDROID.SDK.DIR)/platforms
 NPM.GLOBAL.PATH=$(npm config get prefix)
