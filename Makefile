@@ -166,10 +166,10 @@ DATETIME:=$(shell date +%Y%m%d%H%M%S)
 NODE.VERSION=20.17.0
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
-REACT.NATIVE.INSTALL.VERSION=0.68.7
+REACT.NATIVE.INSTALL.VERSION=0.75.2
 
 create.project: nvmrc
-	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@0.75.2 init $(APP.NAME)  && cd $(PROJECT.DIR) && npm install react-native-cli 
+	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@$(REACT.NATIVE.INSTALL.VERSION) init --npm $(APP.NAME)  && cd $(PROJECT.DIR) && npm install react-native-cli 
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
