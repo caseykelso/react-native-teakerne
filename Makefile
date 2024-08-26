@@ -189,7 +189,7 @@ detox.run.release.android: .FORCE #log levels info, verbose, trace
 
 nvm.install: nvmrc
 	. ${HOME}/.nvm/nvm.sh --no-use && nvm install $(NODE.VERSION)
-	$(NVM.VARS) && nvm use --delete-prefix $(NODE.VERSION) --silent
+#	$(NVM.VARS) && nvm use --delete-prefix $(NODE.VERSION) --silent
 ifeq ($(OS), Darwin)
 	$(info $(NODE.VERSION))
 	$(NVM.VARS) && nvm alias default $(NODE.VERSION)
