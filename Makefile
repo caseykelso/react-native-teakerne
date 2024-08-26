@@ -5,6 +5,12 @@ else
 ORG.NAME=$(ORG_NAME)
 endif
 
+ifndef S3_BUCKET
+$(warning S3_BUCKET must be defined.)
+else
+S3.BUCKET=$(S3_BUCKET)
+endif
+
 ifndef APP_NAME
 $(error APP_NAME must be defined.)
 else
@@ -241,16 +247,22 @@ package.ios: dist.directory
 	cd $(DIST.DIR) && tar czvf $(IOS.ARCHIVE) $(IOS.XCARCHIVE) && md5sum $(IOS.ARCHIVE) > $(IOS.ARCHIVE).md5
 
 upload.android: .FORCE
-	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(ANDROID.ARCHIVE) s3://acme-linux-artifacts --acl public-read --no-progress
-	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(ANDROID.ARCHIVE).md5 s3://acme-linux-artifacts --acl public-read --no-progress
-	@echo https://acme-linux-artifacts.s3.amazonaws.com/$(ANDROID.ARCHIVE)
-	@echo https://acme-linux-artifacts.s3.amazonaws.com/$(ANDROID.ARCHIVE).md5
+ifndef S3.BUCKET
+$(error S3.BUCKET must be defined.)
+endif
+	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(ANDROID.ARCHIVE) s3://$(S3.BUCKET) --acl public-read --no-progress
+	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(ANDROID.ARCHIVE).md5 s3://$(S3.BUCKET) --acl public-read --no-progress
+	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(ANDROID.ARCHIVE)
+	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(ANDROID.ARCHIVE).md5
 
 upload.ios: .FORCE
-	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(IOS.ARCHIVE) s3://acme-linux-artifacts --acl public-read --no-progress
-	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(IOS.ARCHIVE).md5 s3://acme-linux-artifacts --acl public-read --no-progress
-	@echo https://acme-linux-artifacts.s3.amazonaws.com/$(IOS.ARCHIVE)
-	@echo https://acme-linux-artifacts.s3.amazonaws.com/$(IOS.ARCHIVE).md5
+ifndef S3.BUCKET
+$(error S3.BUCKET must be defined.)
+endif
+	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(IOS.ARCHIVE) s3://$(S3.BUCKET) --acl public-read --no-progress
+	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(IOS.ARCHIVE).md5 s3://$(S3.BUCKET) --acl public-read --no-progress
+	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(IOS.ARCHIVE)
+	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(IOS.ARCHIVE).md5
 
 decrypt.secrets: .FORCE
 ifndef ACME_ANDROID_SECRETS
