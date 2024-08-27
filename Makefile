@@ -172,7 +172,7 @@ DATETIME:=$(shell date +%Y%m%d%H%M%S)
 NODE.VERSION=20.17.0
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
-REACT.NATIVE.INSTALL.VERSION=0.75.2
+REACT.NATIVE.INSTALL.VERSION=0.74.2
 
 create.project: nvmrc
 	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@$(REACT.NATIVE.INSTALL.VERSION) init --npm $(APP.NAME)  && cd $(PROJECT.DIR) && npm install react-native-cli 
