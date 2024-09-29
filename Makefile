@@ -136,6 +136,7 @@ ci.android.common: nvm.install nvm update.build.number decrypt.secrets android.s
 ci.android: ci.android.common package.android
 ci.android.signed: ci.android.common decrypt.signing sign.android.upload.key package.android
 ci.ios: ios.update.apple.development.team ios.get.certificates.development ios.xcode.set.app.id nvm.install nvm update.build.number decrypt.secrets install.node install.pods build.ios.debug  package.ios
+ci.ios.minimal: ios.xcode.set.app.id nvm.install nvm update.build.number install.node install.pods build.ios.debug  package.ios
 PACKAGE.NAME=$(APP.ID)
 DIST.DIR=$(BASE.DIR)/dist
 APK.DEBUG.ORIG=$(PROJECT.DIR)/android/app/build/outputs/apk/debug/app-debug.apk
