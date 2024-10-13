@@ -64,13 +64,17 @@ APP.ID=$(APP_ID)
 PROJECT.DIR=$(BASE.DIR)/$(APP.NAME)
 1PASSWORD.SECRETS.URL="https://1password.com/secretslinkfordecrypt"
 CURRENT_DIR := ${CURDIR}
+ifndef VERSION_OVERRIDE
 HASH := $(shell git rev-parse --short=10 HEAD)
 TAG := $(shell git describe --exact-match --tags 2>/dev/null)
 ifeq ($(TAG),) #if tag is empty use hash
 VERSION = $(HASH)
-else
+else #TAG
 VERSION = $(TAG)
 endif
+else #VERSION_OVERRIDE
+VERSION=$(VERSION_OVERRIDE)
+endif #VERSION_OVERRIDE
 OS := $(shell uname)
 INSTALLED.HOST.DIR=$(BASE.DIR)/installed.host
 DOWNLOADS.DIR=$(BASE.DIR)/downloads
