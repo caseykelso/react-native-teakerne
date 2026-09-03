@@ -177,9 +177,10 @@ NODE.VERSION=20.17.0
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
 REACT.NATIVE.INSTALL.VERSION=0.75.2
+REACT.NATIVE.CLI.VERSION=14
 
 create.project: nvmrc
-	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx react-native@$(REACT.NATIVE.INSTALL.VERSION) init --npm $(APP.NAME)  && cd $(PROJECT.DIR) && npm install react-native-cli 
+	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx --yes @react-native-community/cli@$(REACT.NATIVE.CLI.VERSION) init $(APP.NAME) --version $(REACT.NATIVE.INSTALL.VERSION) --pm npm  && cd $(PROJECT.DIR) && npm install react-native-cli
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
@@ -251,18 +252,14 @@ package.ios: dist.directory
 	cd $(DIST.DIR) && tar czvf $(IOS.ARCHIVE) $(IOS.XCARCHIVE) && md5sum $(IOS.ARCHIVE) > $(IOS.ARCHIVE).md5
 
 upload.android: .FORCE
-ifndef S3.BUCKET
-$(error S3.BUCKET must be defined.)
-endif
+	@test -n "$(S3.BUCKET)" || { echo "S3.BUCKET must be defined." >&2; exit 1; }
 	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(ANDROID.ARCHIVE) s3://$(S3.BUCKET) --acl public-read --no-progress
 	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(ANDROID.ARCHIVE).md5 s3://$(S3.BUCKET) --acl public-read --no-progress
 	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(ANDROID.ARCHIVE)
 	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(ANDROID.ARCHIVE).md5
 
 upload.ios: .FORCE
-ifndef S3.BUCKET
-$(error S3.BUCKET must be defined.)
-endif
+	@test -n "$(S3.BUCKET)" || { echo "S3.BUCKET must be defined." >&2; exit 1; }
 	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(IOS.ARCHIVE) s3://$(S3.BUCKET) --acl public-read --no-progress
 	PATH=$(HOME)/.local/bin:$(PATH) $(AWS.BIN) s3 cp $(DIST.DIR)/$(IOS.ARCHIVE).md5 s3://$(S3.BUCKET) --acl public-read --no-progress
 	@echo https://$(S3.BUCKET).s3.amazonaws.com/$(IOS.ARCHIVE)
