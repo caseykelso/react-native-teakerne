@@ -173,14 +173,14 @@ DATETIME:=$(shell date +%Y%m%d%H%M%S)
 #ifneq (,$(wildcard $(BASE.DIR)/package.json))
 #NODE.VERSION=$(shell cat package.json  | jq .engines.node | tr -d \")
 #else
-NODE.VERSION=20.17.0
+NODE.VERSION=22.13.0
 #endif
 NVM.VARS=NVM_DIR="$(HOME)/.nvm" && . "$${NVM_DIR}/nvm.sh" && nvm use $(NODE.VERSION)
-REACT.NATIVE.INSTALL.VERSION=0.75.2
-REACT.NATIVE.CLI.VERSION=14
+REACT.NATIVE.INSTALL.VERSION=0.87.1
+REACT.NATIVE.CLI.VERSION=20
 
 create.project: nvmrc
-	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx --yes @react-native-community/cli@$(REACT.NATIVE.CLI.VERSION) init $(APP.NAME) --version $(REACT.NATIVE.INSTALL.VERSION) --pm npm  && cd $(PROJECT.DIR) && npm install react-native-cli
+	cd $(BASE.DIR) && $(ENV.VARS) && $(NVM.VARS) && yes | npx --yes @react-native-community/cli@$(REACT.NATIVE.CLI.VERSION) init $(APP.NAME) --version $(REACT.NATIVE.INSTALL.VERSION) --pm npm
 
 detox.debug: detox.build.debug.android detox.run.debug.android
 detox.release: detox.build.release.android detox.run.release.android
@@ -226,7 +226,7 @@ endif
 
 install.node: .FORCE
 	$(info $(ENV.VARS))
-	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install react-native-cli npm install
+	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install
 ifeq ($(OS), Darwin)
 	$(ENV.VARS) && $(NVM.VARS) && cd $(PROJECT.DIR) && npm install ios-deploy
 #	gsed -i  "/$ios-deploy/d" package.json #remove ios-deploy from package.json
@@ -429,7 +429,7 @@ android.sdk.licenses: .FORCE
 	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --licenses --sdk_root=$(ANDROID.SDK.DIR)/platforms
 
 android.sdk.platform: .FORCE
-	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --install "platform-tools" "platforms;android-30" --sdk_root=$(ANDROID.SDK.DIR)/platforms
+	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --install "platform-tools" "platforms;android-37" --sdk_root=$(ANDROID.SDK.DIR)/platforms
 
 build.android.react.bundle: install.node
 	mkdir -p $(PROJECT.DIR)/android/app/src/main/assets
