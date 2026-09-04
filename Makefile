@@ -429,7 +429,7 @@ android.sdk.licenses: .FORCE
 	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --licenses --sdk_root=$(ANDROID.SDK.DIR)/platforms
 
 android.sdk.platform: .FORCE
-	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --install "platform-tools" "platforms;android-37" --sdk_root=$(ANDROID.SDK.DIR)/platforms
+	$(ENV.VARS) && cd $(ANDROID.SDK.DIR) && yes | $(SDKMANAGER.BIN) --install "platform-tools" "platforms;android-37.0" --sdk_root=$(ANDROID.SDK.DIR)/platforms
 
 build.android.react.bundle: install.node
 	mkdir -p $(PROJECT.DIR)/android/app/src/main/assets
